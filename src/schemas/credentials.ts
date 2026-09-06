@@ -31,13 +31,21 @@ const card6Digits = Type.String({ minLength: 6, maxLength: 6, description: 'Last
 const nationalID = Type.String({ minLength: 1, description: 'National ID number.' });
 const email = Type.String({ minLength: 3, description: 'Account email.' });
 
-/** OneZero: email + password, plus an optional long-term 2FA token. When the
- * token is omitted the interactive OTP flow (async jobs) is required. */
+/** OneZero: email + password, plus a 2FA method. Supply `otpLongTermToken` to
+ * skip the OTP prompt entirely, OR `phoneNumber` to run the interactive OTP flow
+ * (async jobs only: the job pauses at `waiting_for_otp` for the submitted code). */
 const oneZeroCredentials = Type.Object(
   {
     companyId: Type.Literal('oneZero'),
     email,
     password: Password,
+    phoneNumber: Type.Optional(
+      Type.String({
+        minLength: 1,
+        description:
+          'Phone number for the interactive OTP flow (async jobs). Omit if using a token.',
+      }),
+    ),
     otpLongTermToken: Type.Optional(
       Type.String({
         minLength: 1,

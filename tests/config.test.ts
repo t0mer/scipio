@@ -18,6 +18,7 @@ describe('loadConfig', () => {
     expect(cfg.syncScrapeTimeoutSeconds).toBe(240);
     expect(cfg.otpWaitTimeoutSeconds).toBe(300);
     expect(cfg.chromiumPath).toBe('/usr/bin/chromium');
+    expect(cfg.chromiumArgs).toEqual([]);
     expect(cfg.failureScreenshotsDir).toBeUndefined();
     expect(cfg.logLevel).toBe('info');
     expect(cfg.rateLimit).toEqual({ max: 10, timeWindowSeconds: 900 });
@@ -44,6 +45,11 @@ describe('loadConfig', () => {
     expect(cfg.queueLimit).toBe(5);
     expect(cfg.jobResultTtlSeconds).toBe(60);
     expect(cfg.rateLimit).toEqual({ max: 3, timeWindowSeconds: 120 });
+  });
+
+  it('parses CHROMIUM_ARGS on commas or whitespace', () => {
+    const cfg = loadConfig(withTokens({ CHROMIUM_ARGS: '--no-sandbox, --disable-gpu' }));
+    expect(cfg.chromiumArgs).toEqual(['--no-sandbox', '--disable-gpu']);
   });
 
   it('includes failureScreenshotsDir only when set', () => {

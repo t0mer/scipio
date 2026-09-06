@@ -43,7 +43,12 @@ describe('credential schemas', () => {
     const oneZero = CredentialVariants.find(
       (v) => companyIdOf(v as TObject) === 'oneZero',
     ) as TObject;
-    expect(fieldsOf(oneZero).sort()).toEqual(['email', 'otpLongTermToken', 'password']);
+    expect(fieldsOf(oneZero).sort()).toEqual([
+      'email',
+      'otpLongTermToken',
+      'password',
+      'phoneNumber',
+    ]);
     expect(Value.Check(Credentials, { companyId: 'oneZero', email: 'a@b.co', password: 'p' })).toBe(
       true,
     );

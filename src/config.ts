@@ -27,6 +27,7 @@ const ConfigSchema = Type.Object({
   syncScrapeTimeoutSeconds: Type.Integer({ minimum: 1 }),
   otpWaitTimeoutSeconds: Type.Integer({ minimum: 1 }),
   chromiumPath: Type.String({ minLength: 1 }),
+  chromiumArgs: Type.Array(Type.String({ minLength: 1 })),
   failureScreenshotsDir: Type.Optional(Type.String({ minLength: 1 })),
   logLevel: Type.Union(LOG_LEVELS.map((l) => Type.Literal(l))),
   rateLimit: Type.Object({
@@ -69,6 +70,15 @@ function parseTokens(raw: string | undefined): string[] {
     .split(',')
     .map((t) => t.trim())
     .filter((t) => t.length > 0);
+}
+
+/** Splits extra Chromium launch args on commas or whitespace. */
+function parseArgs(raw: string | undefined): string[] {
+  if (!raw) return [];
+  return raw
+    .split(/[,\s]+/)
+    .map((a) => a.trim())
+    .filter((a) => a.length > 0);
 }
 
 /**
@@ -137,6 +147,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
       env.CHROMIUM_PATH && env.CHROMIUM_PATH.trim() !== ''
         ? env.CHROMIUM_PATH.trim()
         : '/usr/bin/chromium',
+    chromiumArgs: parseArgs(env.CHROMIUM_ARGS),
     ...(env.FAILURE_SCREENSHOTS_DIR && env.FAILURE_SCREENSHOTS_DIR.trim() !== ''
       ? { failureScreenshotsDir: env.FAILURE_SCREENSHOTS_DIR.trim() }
       : {}),

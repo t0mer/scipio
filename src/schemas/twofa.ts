@@ -4,8 +4,6 @@ import { Type, type Static } from '@sinclair/typebox';
 export const TwoFaTriggerRequest = Type.Object(
   {
     companyId: Type.Literal('oneZero'),
-    email: Type.String({ minLength: 3, description: 'Account email.' }),
-    password: Type.String({ minLength: 1, description: 'Account password.' }),
     phoneNumber: Type.String({ minLength: 1, description: 'Phone number to receive the OTP.' }),
   },
   { $id: 'TwoFaTriggerRequest', title: 'TwoFaTriggerRequest', additionalProperties: false },
