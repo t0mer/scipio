@@ -6,13 +6,13 @@ export const TwoFaTriggerRequest = Type.Object(
     companyId: Type.Literal('oneZero'),
     phoneNumber: Type.String({ minLength: 1, description: 'Phone number to receive the OTP.' }),
   },
-  { $id: 'TwoFaTriggerRequest', title: 'TwoFaTriggerRequest', additionalProperties: false },
+  { title: 'TwoFaTriggerRequest', additionalProperties: false },
 );
 export type TwoFaTriggerRequest = Static<typeof TwoFaTriggerRequest>;
 
 export const TwoFaTriggerResponse = Type.Object(
   { success: Type.Boolean() },
-  { $id: 'TwoFaTriggerResponse', title: 'TwoFaTriggerResponse', additionalProperties: false },
+  { title: 'TwoFaTriggerResponse', additionalProperties: false },
 );
 export type TwoFaTriggerResponse = Static<typeof TwoFaTriggerResponse>;
 
@@ -23,7 +23,6 @@ export const TwoFaLongTermTokenRequest = Type.Object(
     otpCode: Type.String({ minLength: 1, description: 'The OTP code received by the user.' }),
   },
   {
-    $id: 'TwoFaLongTermTokenRequest',
     title: 'TwoFaLongTermTokenRequest',
     additionalProperties: false,
   },
@@ -37,7 +36,6 @@ export const TwoFaLongTermTokenResponse = Type.Object(
     }),
   },
   {
-    $id: 'TwoFaLongTermTokenResponse',
     title: 'TwoFaLongTermTokenResponse',
     additionalProperties: false,
   },

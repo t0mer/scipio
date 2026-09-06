@@ -5,7 +5,7 @@ export const HealthResponse = Type.Object(
     status: Type.Literal('ok'),
     version: Type.String(),
   },
-  { $id: 'HealthResponse', title: 'HealthResponse', additionalProperties: false },
+  { title: 'HealthResponse', additionalProperties: false },
 );
 export type HealthResponse = Static<typeof HealthResponse>;
 
@@ -14,7 +14,7 @@ export const ReadyResponse = Type.Object(
     status: Type.Union([Type.Literal('ok'), Type.Literal('unavailable')]),
     chromium: Type.Boolean({ description: 'Whether the Chromium executable is present.' }),
   },
-  { $id: 'ReadyResponse', title: 'ReadyResponse', additionalProperties: false },
+  { title: 'ReadyResponse', additionalProperties: false },
 );
 export type ReadyResponse = Static<typeof ReadyResponse>;
 
@@ -24,6 +24,6 @@ export const VersionResponse = Type.Object(
     libraryVersion: Type.String(),
     commit: Type.String(),
   },
-  { $id: 'VersionResponse', title: 'VersionResponse', additionalProperties: false },
+  { title: 'VersionResponse', additionalProperties: false },
 );
 export type VersionResponse = Static<typeof VersionResponse>;

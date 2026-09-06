@@ -72,6 +72,6 @@ export const ScrapeOptions = Type.Object(
       }),
     ),
   },
-  { additionalProperties: false, $id: 'ScrapeOptions', title: 'ScrapeOptions' },
+  { additionalProperties: false, title: 'ScrapeOptions' },
 );
 export type ScrapeOptions = Static<typeof ScrapeOptions>;

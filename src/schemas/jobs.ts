@@ -49,7 +49,7 @@ export const Job = Type.Object(
       ),
     ),
   },
-  { $id: 'Job', title: 'Job', additionalProperties: false },
+  { title: 'Job', additionalProperties: false },
 );
 export type Job = Static<typeof Job>;
 
@@ -58,7 +58,7 @@ export const JobCreatedResponse = Type.Object(
     jobId: Type.String(),
     status: Type.Union(JOB_STATUSES.map((s) => Type.Literal(s))),
   },
-  { $id: 'JobCreatedResponse', title: 'JobCreatedResponse', additionalProperties: false },
+  { title: 'JobCreatedResponse', additionalProperties: false },
 );
 export type JobCreatedResponse = Static<typeof JobCreatedResponse>;
 
@@ -68,6 +68,6 @@ export type JobResultResponse = Static<typeof JobResultResponse>;
 
 export const OtpSubmission = Type.Object(
   { otpCode: Type.String({ minLength: 1, description: 'The OTP code received by the user.' }) },
-  { $id: 'OtpSubmission', title: 'OtpSubmission', additionalProperties: false },
+  { title: 'OtpSubmission', additionalProperties: false },
 );
 export type OtpSubmission = Static<typeof OtpSubmission>;

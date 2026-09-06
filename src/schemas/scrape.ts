@@ -81,7 +81,7 @@ export const ScrapeResult = Type.Object(
     errorType: Type.Optional(Type.Union(SCRAPE_ERROR_TYPES.map((e) => Type.Literal(e)))),
     errorMessage: Type.Optional(Type.String()),
   },
-  { $id: 'ScrapeResult', title: 'ScrapeResult', additionalProperties: true },
+  { title: 'ScrapeResult', additionalProperties: true },
 );
 export type ScrapeResult = Static<typeof ScrapeResult>;
 
@@ -91,6 +91,6 @@ export const ScrapeRequest = Type.Object(
     credentials: Credentials,
     options: ScrapeOptions,
   },
-  { $id: 'ScrapeRequest', title: 'ScrapeRequest', additionalProperties: false },
+  { title: 'ScrapeRequest', additionalProperties: false },
 );
 export type ScrapeRequest = Static<typeof ScrapeRequest>;

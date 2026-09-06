@@ -24,6 +24,6 @@ export const CompaniesResponse = Type.Object(
       description: 'Opt-in features accepted in scrape options.',
     }),
   },
-  { $id: 'CompaniesResponse', title: 'CompaniesResponse', additionalProperties: false },
+  { title: 'CompaniesResponse', additionalProperties: false },
 );
 export type CompaniesResponse = Static<typeof CompaniesResponse>;

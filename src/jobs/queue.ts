@@ -34,6 +34,8 @@ export interface JobManagerOptions {
   queueLimit: number;
   otpWaitTimeoutMs: number;
   screenshotsEnabled: boolean;
+  /** Called when a job reaches a terminal state, for metrics. */
+  onOutcome?: (companyId: string, status: 'succeeded' | 'failed', durationSeconds: number) => void;
 }
 
 /**
@@ -92,6 +94,11 @@ export class JobManager {
     this.store.patch(jobId, { status: 'running' });
   }
 
+  /** Number of jobs currently queued (pending). */
+  pendingCount(): number {
+    return this.store.countByStatus('queued');
+  }
+
   /** Cancels/deletes a job (best effort for in-flight scrapes). */
   cancel(jobId: string): void {
     const record = this.store.get(jobId);
@@ -120,6 +127,10 @@ export class JobManager {
     const record = this.store.get(jobId);
     if (!record || !record.request || record.cancelled) return;
     const request = record.request;
+    const companyId = record.companyId;
+    const startedAt = Date.now();
+    const emit = (status: 'succeeded' | 'failed'): void =>
+      this.options.onOutcome?.(companyId, status, (Date.now() - startedAt) / 1000);
 
     const otpBridge = new OtpBridge({
       timeoutMs: this.options.otpWaitTimeoutMs,
@@ -141,13 +152,15 @@ export class JobManager {
       // succeeded and carries success:false. A TIMEOUT (OTP or navigation) is a
       // genuine job failure.
       const failed = result.success === false && result.errorType === 'TIMEOUT';
+      const status = failed ? 'failed' : 'succeeded';
       this.store.patch(jobId, {
-        status: failed ? 'failed' : 'succeeded',
+        status,
         result,
         error: failed
           ? { code: result.errorType ?? 'TIMEOUT', message: result.errorMessage ?? 'Timed out.' }
           : undefined,
       });
+      emit(status);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       if (this.store.get(jobId)?.cancelled) return;
@@ -156,6 +169,7 @@ export class JobManager {
         result: { success: false, errorType: 'GENERIC', errorMessage: message },
         error: { code: 'GENERIC', message },
       });
+      emit('failed');
     }
   }
 

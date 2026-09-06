@@ -79,7 +79,6 @@ export const CredentialVariants = [
 
 /** Discriminated union of all supported credential shapes, keyed by companyId. */
 export const Credentials = Type.Union([...CredentialVariants], {
-  $id: 'Credentials',
   title: 'Credentials',
   description: 'Company credentials. The required fields depend on companyId.',
 });

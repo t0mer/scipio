@@ -13,7 +13,7 @@ export const ErrorEnvelope = Type.Object(
       details: Type.Optional(Type.Unknown()),
     }),
   },
-  { $id: 'ErrorEnvelope', title: 'ErrorEnvelope' },
+  { title: 'ErrorEnvelope' },
 );
 export type ErrorEnvelope = Static<typeof ErrorEnvelope>;
 
