@@ -66,6 +66,14 @@ export interface RunContext {
   screenshotId?: string;
 }
 
+/** The scrape-execution surface the JobManager depends on (eases testing). */
+export interface ScrapeRunnerLike {
+  run(
+    request: { credentials: Credentials; options: ScrapeOptions },
+    ctx?: RunContext,
+  ): Promise<ScrapeResult>;
+}
+
 /**
  * Maps API scrape options to the library's option object, copying only the
  * fields that are present so the mapping is explicit and testable field by field.
