@@ -1,0 +1,33 @@
+services:
+  scipio:
+    image: techblog/scipio:latest
+    # To build locally instead of pulling: `docker compose build`
+    build:
+      context: .
+      args:
+        VERSION: local
+    ports:
+      - '8080:8080'
+    environment:
+      # Comma-separated bearer tokens. REQUIRED to expose beyond localhost.
+      API_TOKENS: ${API_TOKENS:-}
+      LOG_LEVEL: info
+      MAX_CONCURRENT_SCRAPES: '2'
+      # Uncomment to store failure screenshots into the mounted volume:
+      # FAILURE_SCREENSHOTS_DIR: /data/screenshots
+      # If Chromium fails to launch in your environment, add flags here, e.g.:
+      # CHROMIUM_ARGS: --no-sandbox
+    volumes:
+      - scipio-data:/data
+    # Chromium needs more shared memory than the 64MB Docker default.
+    shm_size: '1gb'
+    # Run with a locked-down profile (Chromium works under the default seccomp
+    # profile without extra capabilities); drop everything else.
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    restart: unless-stopped
+
+volumes:
+  scipio-data:
