@@ -1,16 +1,31 @@
 import { buildApp } from './app.js';
+import { loadConfig, ConfigError } from './config.js';
 
 /**
- * Entrypoint: builds the app and starts listening. Configuration parsing and
- * validation are wired in a later step; a hardcoded default is used for now.
+ * Entrypoint: parses and validates configuration, builds the app, and starts
+ * listening. Invalid configuration is fatal (non-zero exit with a clear
+ * message); security advisories are surfaced before binding.
  */
 async function main(): Promise<void> {
-  const app = await buildApp();
-  const port = Number(process.env.PORT ?? 8080);
-  const host = process.env.BIND ?? '0.0.0.0';
+  let config;
+  try {
+    config = loadConfig();
+  } catch (err) {
+    if (err instanceof ConfigError) {
+      console.error(err.message);
+      process.exit(1);
+    }
+    throw err;
+  }
+
+  for (const warning of config.warnings) {
+    console.warn(`[config] ${warning}`);
+  }
+
+  const app = await buildApp(config);
 
   try {
-    await app.listen({ port, host });
+    await app.listen({ port: config.port, host: config.bind });
   } catch (err) {
     console.error(err);
     process.exit(1);
