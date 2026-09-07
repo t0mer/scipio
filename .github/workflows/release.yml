@@ -1,10 +1,13 @@
 name: Release
 
-# Releases are cut by pushing a version tag, e.g. `v2026.9.0`.
+# Releases are intentional: triggered manually. Leave `version` blank to
+# auto-compute the next YYYY.M.PATCH from the latest git tag.
 on:
-  push:
-    tags:
-      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version (YYYY.M.PATCH). Blank = auto-compute.'
+        required: false
 
 permissions:
   contents: write
@@ -18,16 +21,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # all tags needed to compute the next version
 
-      - name: Resolve version from tag
+      - name: Resolve version
         id: version
         env:
-          REF_NAME: ${{ github.ref_name }} # via env — injection-safe
+          INPUT_VERSION: ${{ github.event.inputs.version }} # via env — injection-safe
         run: |
           set -euo pipefail
-          VERSION="${REF_NAME#v}"
-          [ -n "$VERSION" ] || { echo "::error::empty version"; exit 1; }
+          if [ -n "$INPUT_VERSION" ]; then
+            VERSION="$INPUT_VERSION"
+          else
+            VERSION="$(./scripts/next-version.sh)"
+          fi
+          [ -n "$VERSION" ] || { echo "::error::could not resolve a version"; exit 1; }
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Set up QEMU
@@ -56,9 +63,22 @@ jobs:
             ${{ env.IMAGE }}:latest
             ${{ env.IMAGE }}:${{ steps.version.outputs.version }}
 
+      # Tag AFTER a successful push so a failed build never creates a tag, and so
+      # the next auto-computed run increments. github-actions[bot] is the only
+      # permitted bot commit identity (tagging inside the Release workflow).
+      - name: Create and push tag
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
       - name: Create GitHub Release
         # TODO: pin to a commit SHA for release-critical use.
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ steps.version.outputs.version }}
           generate_release_notes: true

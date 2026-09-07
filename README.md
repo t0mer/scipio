@@ -286,10 +286,12 @@ npm run scrape:manual
 
 ### Releasing
 
-Versioning is date-based `YYYY.M.PATCH`. Push a tag `vYYYY.M.PATCH` to trigger
-the release workflow, which builds and pushes the multi-arch image
-(`techblog/scipio:{version,latest}`) and creates a GitHub release. Use
-`scripts/next-version.sh` to compute the next version.
+Versioning is date-based `YYYY.M.PATCH` (no leading zero on the month). Releases
+are **manual**: run the **Release** workflow (`workflow_dispatch`). Leave the
+`version` input blank to auto-compute the next version with
+`scripts/next-version.sh`, or set it explicitly. The workflow builds and pushes
+the multi-arch image (`techblog/scipio:{version,latest}`), then tags the commit
+(as `github-actions[bot]`) and creates a GitHub release with generated notes.
 
 ---
 
