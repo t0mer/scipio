@@ -28,7 +28,14 @@ ENV NODE_ENV=production \
     PUPPETEER_SKIP_DOWNLOAD=1 \
     CHROMIUM_PATH=/usr/bin/chromium \
     TZ=Asia/Jerusalem \
-    PORT=8080
+    PORT=8080 \
+    HOME=/home/scipio \
+    # In a container the non-root user has no usable Chromium sandbox (the setuid
+    # sandbox isn't installed and unprivileged user namespaces are restricted),
+    # so --no-sandbox is required here. The container is the isolation boundary;
+    # Chromium only visits the operator's own bank sites. Override CHROMIUM_ARGS
+    # to change this.
+    CHROMIUM_ARGS=--no-sandbox
 
 WORKDIR /app
 COPY --from=build /app/node_modules ./node_modules
@@ -41,10 +48,11 @@ ARG GIT_COMMIT=unknown
 ENV SCIPIO_VERSION=${VERSION} \
     GIT_COMMIT=${GIT_COMMIT}
 
-# Non-root user; /data is writable for optional failure screenshots.
-RUN groupadd -r scipio && useradd -r -g scipio -u 10001 scipio \
+# Non-root user with a writable HOME (Chromium/crashpad need it) and /data
+# (optional failure screenshots).
+RUN groupadd -r scipio && useradd -r -g scipio -u 10001 -m -d /home/scipio scipio \
     && mkdir -p /data \
-    && chown -R scipio:scipio /app /data
+    && chown -R scipio:scipio /app /data /home/scipio
 USER scipio
 
 EXPOSE 8080

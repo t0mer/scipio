@@ -15,7 +15,8 @@ services:
       MAX_CONCURRENT_SCRAPES: '2'
       # Uncomment to store failure screenshots into the mounted volume:
       # FAILURE_SCREENSHOTS_DIR: /data/screenshots
-      # If Chromium fails to launch in your environment, add flags here, e.g.:
+      # The image defaults to CHROMIUM_ARGS=--no-sandbox (required for a non-root
+      # container user). Override here to change Chromium launch flags.
       # CHROMIUM_ARGS: --no-sandbox
     volumes:
       - scipio-data:/data

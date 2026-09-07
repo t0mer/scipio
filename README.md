@@ -257,8 +257,12 @@ Point Prometheus at `/metrics` and build Grafana panels per company/status.
 - **`ACCOUNT_BLOCKED`** — too many failed logins. Unblock with the bank; avoid
   aggressive scheduling.
 - **Chromium won't launch / arm64** — the image uses **system Chromium** (not
-  puppeteer's download). If launch fails in your environment, set
-  `CHROMIUM_ARGS=--no-sandbox`. Ensure `--shm-size=1g`.
+  puppeteer's download) and ships with `CHROMIUM_ARGS=--no-sandbox` by default,
+  because a non-root container user has no usable Chromium sandbox (the setuid
+  sandbox isn't installed and unprivileged user namespaces are restricted). The
+  container is the isolation boundary. To change it, override `CHROMIUM_ARGS`.
+  Ensure `--shm-size=1g`. Outside Docker, set `CHROMIUM_PATH` to your Chromium
+  binary; the code default keeps the sandbox on.
 - **`unable to open ... /dev/shm`** — increase `shm_size` (compose) or
   `--shm-size` (docker run).
 - **Scrape failures after a bank site change** — bump the scraper library first
