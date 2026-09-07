@@ -1,11 +1,7 @@
 services:
   scipio:
+    # Pulls the published multi-arch image from Docker Hub.
     image: techblog/scipio:latest
-    # To build locally instead of pulling: `docker compose build`
-    build:
-      context: .
-      args:
-        VERSION: local
     ports:
       - '8080:8080'
     environment:
