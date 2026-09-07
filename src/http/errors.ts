@@ -1,4 +1,4 @@
-import type { FastifyError, FastifyInstance } from 'fastify';
+import type { FastifyError, FastifyInstance, FastifyRequest } from 'fastify';
 import { errorEnvelope } from '../schemas/common.js';
 import {
   QueueFullError,
@@ -8,6 +8,58 @@ import {
 } from '../jobs/queue.js';
 import { ScrapeInputError } from '../scraper/runner.js';
 import { TwoFactorSessionError } from '../scraper/twofa.js';
+import { listCompanies } from '../scraper/companies.js';
+
+/**
+ * The credentials discriminated union validates as a JSON-Schema `anyOf`, whose
+ * raw AJV error enumerates every company variant — unreadable. When a validation
+ * failure concerns `/credentials`, produce a single message scoped to the
+ * submitted `companyId` instead.
+ */
+function credentialValidationMessage(
+  err: FastifyError,
+  req: FastifyRequest,
+): { message: string; details: unknown } | undefined {
+  const involvesCreds = (err.validation ?? []).some(
+    (e) =>
+      (e.instancePath ?? '').startsWith('/credentials') ||
+      (e.schemaPath ?? '').includes('/credentials/'),
+  );
+  if (!involvesCreds) return undefined;
+
+  const body = req.body as { credentials?: { companyId?: unknown } } | undefined;
+  const companyId = body?.credentials?.companyId;
+  const companies = listCompanies();
+  const ids = companies.map((c) => c.companyId).join(', ');
+
+  if (typeof companyId !== 'string' || companyId === '') {
+    return {
+      message: `credentials.companyId is required and must be one of: ${ids}.`,
+      details: undefined,
+    };
+  }
+  const match = companies.find((c) => c.companyId === companyId);
+  if (!match) {
+    return { message: `Unknown companyId '${companyId}'. Supported: ${ids}.`, details: undefined };
+  }
+  if (companyId === 'oneZero') {
+    return {
+      message:
+        "Invalid credentials for 'oneZero'. Required: email, password, and either otpLongTermToken or phoneNumber (interactive OTP).",
+      details: {
+        companyId,
+        requiredFields: ['email', 'password'],
+        oneOf: ['otpLongTermToken', 'phoneNumber'],
+      },
+    };
+  }
+  return {
+    message: `Invalid credentials for '${companyId}'. Required fields: ${match.loginFields.join(
+      ', ',
+    )} (and no others).`,
+    details: { companyId, requiredFields: match.loginFields },
+  };
+}
 
 interface Mapped {
   status: number;
@@ -38,6 +90,11 @@ export function registerErrorHandler(app: FastifyInstance): void {
   app.setErrorHandler((err: FastifyError, req, reply) => {
     // Schema validation errors (Fastify attaches `validation`).
     if (err.validation) {
+      const cred = credentialValidationMessage(err, req);
+      if (cred) {
+        reply.code(400).send(errorEnvelope('VALIDATION', cred.message, cred.details));
+        return;
+      }
       reply.code(400).send(errorEnvelope('VALIDATION', err.message, err.validation));
       return;
     }

@@ -148,6 +148,45 @@ describe('scrape endpoint', () => {
     expect(res.json()).toMatchObject({ success: true });
   });
 
+  it('returns a concise, company-specific error for wrong credential fields', async () => {
+    app = await makeApp();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/scrape',
+      headers: auth,
+      // leumi needs username, not userCode
+      payload: {
+        credentials: { companyId: 'leumi', userCode: 'x', password: 'p' },
+        options: { startDate: '2024-01-01' },
+      },
+    });
+    expect(res.statusCode).toBe(400);
+    const body = res.json();
+    expect(body.error.message).toContain("'leumi'");
+    expect(body.error.message).toContain('username');
+    // not the giant anyOf dump
+    expect(body.error.message).not.toContain('anyOf');
+    expect(body.error.details).toMatchObject({
+      companyId: 'leumi',
+      requiredFields: ['username', 'password'],
+    });
+  });
+
+  it('names an unknown companyId clearly', async () => {
+    app = await makeApp();
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/scrape',
+      headers: auth,
+      payload: {
+        credentials: { companyId: 'notabank', username: 'u', password: 'p' },
+        options: { startDate: '2024-01-01' },
+      },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().error.message).toContain("Unknown companyId 'notabank'");
+  });
+
   it('rejects a 2FA company on the sync endpoint', async () => {
     app = await makeApp();
     const res = await app.inject({
