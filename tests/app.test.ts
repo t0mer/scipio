@@ -187,6 +187,41 @@ describe('scrape endpoint', () => {
     expect(res.json().error.message).toContain("Unknown companyId 'notabank'");
   });
 
+  it('serializes a result with null amounts (sanitized NaN) without a 500', async () => {
+    app = await makeApp(async () => ({
+      success: true,
+      accounts: [
+        {
+          accountNumber: '1',
+          balance: null,
+          txns: [
+            {
+              type: 'normal',
+              date: '2024-01-01',
+              processedDate: '2024-01-01',
+              originalAmount: null,
+              originalCurrency: 'ILS',
+              chargedAmount: 12.5,
+              description: 'x',
+              status: 'completed',
+            },
+          ],
+        },
+      ],
+    }));
+    const res = await app.inject({
+      method: 'POST',
+      url: '/api/v1/scrape',
+      headers: auth,
+      payload: {
+        credentials: { companyId: 'leumi', username: 'u', password: 'p' },
+        options: { startDate: '2024-01-01' },
+      },
+    });
+    expect(res.statusCode).toBe(200);
+    expect(res.json().accounts[0].txns[0].originalAmount).toBeNull();
+  });
+
   it('rejects a 2FA company on the sync endpoint', async () => {
     app = await makeApp();
     const res = await app.inject({

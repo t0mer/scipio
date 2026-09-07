@@ -175,6 +175,38 @@ describe('ScrapeRunner.run', () => {
     expect(release).toHaveBeenCalledOnce();
   });
 
+  it('sanitizes non-finite numbers in the scrape result to null', async () => {
+    const dirty = {
+      success: true,
+      accounts: [
+        {
+          accountNumber: '1',
+          balance: NaN,
+          txns: [
+            {
+              type: 'normal',
+              date: '2024-01-01',
+              processedDate: '2024-01-01',
+              originalAmount: Infinity,
+              originalCurrency: 'ILS',
+              chargedAmount: 12.5,
+              description: 'x',
+              status: 'completed',
+            },
+          ],
+        },
+      ],
+    } as unknown as ScrapeResult;
+    const { deps } = makeDeps(() => dirty);
+    const runner = new ScrapeRunner(deps);
+    const result = (await runner.run(req)) as unknown as Record<string, unknown>;
+    const account = (result.accounts as Array<Record<string, unknown>>)[0]!;
+    expect(account.balance).toBeNull();
+    const txn = (account.txns as Array<Record<string, unknown>>)[0]!;
+    expect(txn.originalAmount).toBeNull();
+    expect(txn.chargedAmount).toBe(12.5); // finite values untouched
+  });
+
   it('normalises an unexpected throw to a GENERIC result', async () => {
     const { deps } = makeDeps(() => {
       throw new Error('boom');

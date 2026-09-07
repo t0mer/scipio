@@ -169,6 +169,27 @@ export function extractCredentials(
 }
 
 /**
+ * Recursively replaces non-finite numbers (NaN, ±Infinity) with null. JSON has
+ * no representation for them and the response serializer rejects NaN.
+ */
+export function sanitizeNonFinite<T>(value: T): T {
+  if (typeof value === 'number') {
+    return (Number.isFinite(value) ? value : null) as unknown as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map((v) => sanitizeNonFinite(v)) as unknown as T;
+  }
+  if (value !== null && typeof value === 'object') {
+    const obj = value as Record<string, unknown>;
+    for (const key of Object.keys(obj)) {
+      obj[key] = sanitizeNonFinite(obj[key]);
+    }
+    return value;
+  }
+  return value;
+}
+
+/**
  * Orchestrates a single scrape: acquires an isolated browser context, wires
  * progress and OTP, runs the library scraper, and always releases the context.
  * Library/scrape failures are returned as `{ success: false, errorType }` — only
@@ -209,7 +230,10 @@ export class ScrapeRunner {
       }
 
       const result = await scraper.scrape(libraryCredentials);
-      return result as ScrapeResult;
+      // The scraper can emit non-finite numbers (e.g. an unparseable amount as
+      // NaN). JSON has no NaN, and the strict response serializer throws on it —
+      // normalise to null so a scrape never fails on serialization.
+      return sanitizeNonFinite(result) as ScrapeResult;
     } catch (err) {
       if (err instanceof OtpTimeoutError) {
         return { success: false, errorType: 'TIMEOUT', errorMessage: err.message };

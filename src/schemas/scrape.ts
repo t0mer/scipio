@@ -1,6 +1,9 @@
-import { Type, type Static } from '@sinclair/typebox';
+import { Type, type Static, type TSchema } from '@sinclair/typebox';
 import { Credentials } from './credentials.js';
 import { ScrapeOptions } from './options.js';
+
+/** A value that may be null (used for bank numbers that can be unparseable). */
+const Nullable = <T extends TSchema>(schema: T) => Type.Union([schema, Type.Null()]);
 
 /** Scrape error outcomes surfaced by the library (not HTTP errors). */
 export const SCRAPE_ERROR_TYPES = [
@@ -29,9 +32,9 @@ export const Transaction = Type.Object(
     ),
     date: Type.String({ description: 'ISO date string.' }),
     processedDate: Type.String({ description: 'ISO date string.' }),
-    originalAmount: Type.Number(),
+    originalAmount: Nullable(Type.Number()),
     originalCurrency: Type.String(),
-    chargedAmount: Type.Number(),
+    chargedAmount: Nullable(Type.Number()),
     chargedCurrency: Type.Optional(Type.String()),
     description: Type.String(),
     memo: Type.Optional(Type.String()),
@@ -47,9 +50,9 @@ export type Transaction = Static<typeof Transaction>;
 export const Account = Type.Object(
   {
     accountNumber: Type.String(),
-    balance: Type.Optional(Type.Number()),
+    balance: Type.Optional(Nullable(Type.Number())),
     balanceDate: Type.Optional(Type.String()),
-    cardFrame: Type.Optional(Type.Number()),
+    cardFrame: Type.Optional(Nullable(Type.Number())),
     cardType: Type.Optional(
       Type.Union([Type.Literal('bankIssued'), Type.Literal('companyIssued')]),
     ),
@@ -63,7 +66,7 @@ export type Account = Static<typeof Account>;
 
 export const FutureDebit = Type.Object(
   {
-    amount: Type.Number(),
+    amount: Nullable(Type.Number()),
     amountCurrency: Type.String(),
     chargeDate: Type.Optional(Type.String()),
     bankAccountNumber: Type.Optional(Type.String()),
