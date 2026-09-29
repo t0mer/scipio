@@ -1,7 +1,22 @@
 {
   "name": "scipio",
   "version": "0.0.0",
-  "description": "Self-hosted RESTful API around israeli-bank-scrapers",
+  "description": "Self-hosted REST API around israeli-bank-scrapers: fetch Israeli bank and credit-card transactions over HTTP",
+  "keywords": [
+    "israeli-bank-scrapers",
+    "israel",
+    "bank",
+    "credit-card",
+    "transactions",
+    "scraper",
+    "rest-api",
+    "fastify",
+    "puppeteer",
+    "openapi",
+    "prometheus",
+    "self-hosted",
+    "docker"
+  ],
   "license": "Apache-2.0",
   "author": "Tomer Klein",
   "repository": {
